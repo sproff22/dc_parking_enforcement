@@ -6,7 +6,6 @@ dist/
 ui/node_modules/.env
 
 # ---- large generated data ----
-data/dc_parking_data.csv
 data/ticket_zcta_lookup.csv
 
 # shapefiles (large / binary)
@@ -20,3 +19,4 @@ data/shapefiles/
 *.sbx
 *.zip
 
+data/dc_parking_data.csv
