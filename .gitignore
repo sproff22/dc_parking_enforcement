@@ -4,3 +4,24 @@ dist/
 *.log
 /.DS_Store
 ui/node_modules/.env
+
+# ---- large generated data ----
+data/ticket_zcta_lookup.csv
+
+# shapefiles (large / binary)
+data/shapefiles/
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.sbn
+*.sbx
+*.zip
+
+data/dc_parking_data.csv
+
+eda/output_files/
+eda/clean_location_blocks.csv
+eda/location_blocks.csv
+eda/model_data.csv
