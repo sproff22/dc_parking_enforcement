@@ -20,3 +20,8 @@ data/shapefiles/
 *.zip
 
 data/dc_parking_data.csv
+
+eda/output_files/
+eda/clean_location_blocks.csv
+eda/location_blocks.csv
+eda/model_data.csv
