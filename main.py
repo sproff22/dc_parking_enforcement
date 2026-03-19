@@ -27,8 +27,6 @@ def load_feature_data(csv_path: str) -> pd.DataFrame:
         "posterior_recurrence_score",
         "clean_location_block",
         "enforcement_grade",
-        "LATITUDE",
-        "LONGITUDE"
     ]
 
     missing = [c for c in required_cols if c not in df.columns]
@@ -41,8 +39,6 @@ def load_feature_data(csv_path: str) -> pd.DataFrame:
     df["clean_location_block"] = df["clean_location_block"].astype(str).str.strip()
     df["enforcement_grade"] = df["enforcement_grade"].astype(str).str.strip().str.upper()
 
-    df["LATITUDE"] = pd.to_numeric(df["LATITUDE"], errors="coerce")
-    df["LONGITUDE"] = pd.to_numeric(df["LONGITUDE"], errors="coerce")
     df["raw_recurrence_rate"] = pd.to_numeric(df["raw_recurrence_rate"], errors="coerce")
     df["posterior_recurrence_score"] = pd.to_numeric(df["posterior_recurrence_score"], errors="coerce")
 
@@ -203,7 +199,7 @@ def evaluate_parking_risk(
 
 st.title("DC Parking Risk App")
 
-csv_path = "eda/output_files/feature_data.csv"
+csv_path = "eda/output_files/grade_data.csv"
 
 try:
     df = load_feature_data(csv_path)
