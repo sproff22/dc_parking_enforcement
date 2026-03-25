@@ -25,3 +25,7 @@ eda/output_files/
 eda/clean_location_blocks.csv
 eda/location_blocks.csv
 eda/model_data.csv
+visualization/feature_data.csv
+visualization/.ipynb_checkpoints/Visualization & Charts-checkpoint.ipynb
+data/.DS_Store
+data/acs_data/.DS_Store
