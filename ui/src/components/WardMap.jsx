@@ -99,6 +99,13 @@ export default function WardMap({ activeWard, onWardClick, colorMode, minRisk, t
       s.onload = () => boot(window.L);
       document.head.appendChild(s);
     }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
   }, []);
 
   // Update tile layer when theme changes

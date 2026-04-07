@@ -37,7 +37,7 @@ export const LEGEND_ITEMS = {
 };
 
 export const LEGEND_LABELS = {
-  risk: "Predicted Risk Score",
+  risk: "Bayesian Recurrence Score",
   income: "Median Income (ACS B19013)",
   poverty: "Poverty Rate (ACS B17001)",
 

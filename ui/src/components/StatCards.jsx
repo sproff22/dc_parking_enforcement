@@ -12,7 +12,7 @@ export default function StatCards({ wards, theme, filteredStats }) {
   const cards = [
     { lbl:"Total Citations",   val:fmt(tot),                     sub:"Jan–Dec 2025 (filtered)" },
     { lbl:"Fine Revenue",      val:usdM(rev),                    sub:"from FINE_AMOUNT field" },
-    { lbl:"Enforcement Index", val:`${(risk*100).toFixed(0)}%`,  sub:riskLabel(risk), c:riskHex(risk) },
+    { lbl:"Recurrence Risk", val:`${(risk*100).toFixed(0)}%`,  sub:riskLabel(risk), c:riskHex(risk) },
     { lbl:"Avg Median Income", val:usdK(inc),                    sub:"ACS table B19013" },
     { lbl:"Avg Poverty Rate",  val:pct(pov),                     sub:"ACS table B17001" },
   ];

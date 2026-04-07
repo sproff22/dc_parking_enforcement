@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { riskHex } from "../utils/colors";
 import { usdK, pct } from "../utils/formatters";
@@ -19,14 +20,19 @@ function pearsonR(xs, ys) {
 }
 
 export default function EquityPanel({ theme, wards, filteredStats }) {
+  const [perCapita, setPerCapita] = useState(false);
   const active = wards && wards.length ? wards : ALL_WARDS;
 
   const data = active.map(w => {
     const s = filteredStats[w];
     if (!s) return null;
+    const pop = s.population || 1;
+    const citVal = perCapita ? (s.citations / pop) * 1000 : s.citations;
     return {
       ward: `W${w}`,
-      citations: s.citations,
+      citations: citVal,
+      rawCitations: s.citations,
+      population: pop,
       income: s.medianIncome,
       poverty: s.povertyRate,
       blackShare: s.blackShare,
@@ -34,6 +40,7 @@ export default function EquityPanel({ theme, wards, filteredStats }) {
     };
   }).filter(Boolean);
 
+  const citLabel = perCapita ? "Citations per 1k residents" : "Citations";
   const rIncome = pearsonR(data.map(d => d.income), data.map(d => d.citations));
   const rPoverty = pearsonR(data.map(d => d.poverty), data.map(d => d.citations));
   const rBlack = pearsonR(data.map(d => d.blackShare), data.map(d => d.citations));
@@ -46,7 +53,8 @@ export default function EquityPanel({ theme, wards, filteredStats }) {
     return (
       <div style={{ ...ttStyle, padding:"8px 10px" }}>
         <div style={{ fontWeight:700, marginBottom:2 }}>{d.ward}</div>
-        <div>Citations: {d.citations.toLocaleString()}</div>
+        <div>{citLabel}: {perCapita ? d.citations.toFixed(1) : d.citations.toLocaleString()}</div>
+        {perCapita && <div>Raw citations: {d.rawCitations.toLocaleString()}</div>}
         <div>Income: {usdK(d.income)}</div>
         <div>Poverty: {pct(d.poverty)}</div>
         <div>Risk: {(d.risk * 100).toFixed(0)}%</div>
@@ -55,18 +63,28 @@ export default function EquityPanel({ theme, wards, filteredStats }) {
     );
   };
 
+  const yTickFmt = perCapita
+    ? (v => v.toFixed(0))
+    : (v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v);
+
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-      <div style={{ fontSize:9, color:theme.textDimmed, fontStyle:"italic", padding:"0 4px" }}>Descriptive only — does not control for confounding factors (enforcement density, commercial activity, parking supply).</div>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ fontSize:9, color:theme.textDimmed, fontStyle:"italic" }}>Descriptive only — does not control for confounding factors (enforcement density, commercial activity, parking supply).</div>
+        <label style={{ display:"flex", alignItems:"center", gap:5, fontSize:10, color:theme.textMuted, cursor:"pointer", flexShrink:0, marginLeft:12 }}>
+          <input type="checkbox" checked={perCapita} onChange={e => setPerCapita(e.target.checked)} style={{ accentColor:"#3b82f6" }} />
+          Per 1k residents
+        </label>
+      </div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
-      <ChartBox title="Citations vs. Median Income" subtitle={`r = ${rIncome !== null ? rIncome.toFixed(2) : 'N/A'} · n = ${data.length} wards`} theme={theme}>
+      <ChartBox title={`${citLabel} vs. Median Income`} subtitle={`r = ${rIncome !== null ? rIncome.toFixed(2) : 'N/A'} · n = ${data.length} wards`} theme={theme}>
         <ResponsiveContainer width="100%" height={135}>
           <ScatterChart margin={{ top:8,right:12,left:-10,bottom:2 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
             <XAxis dataKey="income" name="Income" tick={{ fontSize:9, fill:theme.textMuted }}
               tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
-            <YAxis dataKey="citations" name="Citations" tick={{ fontSize:9, fill:theme.textMuted }}
-              tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+            <YAxis dataKey="citations" name={citLabel} tick={{ fontSize:9, fill:theme.textMuted }}
+              tickFormatter={yTickFmt} />
             <Tooltip content={<CustomTooltip />} />
             <Scatter data={data} fill="#3b82f6">
               {data.map((d, i) => <Cell key={i} fill={riskHex(d.risk)} />)}
@@ -75,14 +93,14 @@ export default function EquityPanel({ theme, wards, filteredStats }) {
         </ResponsiveContainer>
       </ChartBox>
 
-      <ChartBox title="Citations vs. Poverty Rate" subtitle={`r = ${rPoverty !== null ? rPoverty.toFixed(2) : 'N/A'} · n = ${data.length} wards`} theme={theme}>
+      <ChartBox title={`${citLabel} vs. Poverty Rate`} subtitle={`r = ${rPoverty !== null ? rPoverty.toFixed(2) : 'N/A'} · n = ${data.length} wards`} theme={theme}>
         <ResponsiveContainer width="100%" height={135}>
           <ScatterChart margin={{ top:8,right:12,left:-10,bottom:2 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
             <XAxis dataKey="poverty" name="Poverty" tick={{ fontSize:9, fill:theme.textMuted }}
               tickFormatter={v => `${(v*100).toFixed(0)}%`} />
-            <YAxis dataKey="citations" name="Citations" tick={{ fontSize:9, fill:theme.textMuted }}
-              tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+            <YAxis dataKey="citations" name={citLabel} tick={{ fontSize:9, fill:theme.textMuted }}
+              tickFormatter={yTickFmt} />
             <Tooltip content={<CustomTooltip />} />
             <Scatter data={data} fill="#3b82f6">
               {data.map((d, i) => <Cell key={i} fill={riskHex(d.risk)} />)}
@@ -91,14 +109,14 @@ export default function EquityPanel({ theme, wards, filteredStats }) {
         </ResponsiveContainer>
       </ChartBox>
 
-      <ChartBox title="Citations vs. % Black Population" subtitle={`r = ${rBlack !== null ? rBlack.toFixed(2) : 'N/A'} · n = ${data.length} wards`} theme={theme}>
+      <ChartBox title={`${citLabel} vs. % Black Population`} subtitle={`r = ${rBlack !== null ? rBlack.toFixed(2) : 'N/A'} · n = ${data.length} wards`} theme={theme}>
         <ResponsiveContainer width="100%" height={135}>
           <ScatterChart margin={{ top:8,right:12,left:-10,bottom:2 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
             <XAxis dataKey="blackShare" name="% Black" tick={{ fontSize:9, fill:theme.textMuted }}
               tickFormatter={v => `${(v*100).toFixed(0)}%`} />
-            <YAxis dataKey="citations" name="Citations" tick={{ fontSize:9, fill:theme.textMuted }}
-              tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+            <YAxis dataKey="citations" name={citLabel} tick={{ fontSize:9, fill:theme.textMuted }}
+              tickFormatter={yTickFmt} />
             <Tooltip content={<CustomTooltip />} />
             <Scatter data={data} fill="#3b82f6">
               {data.map((d, i) => <Cell key={i} fill={riskHex(d.risk)} />)}

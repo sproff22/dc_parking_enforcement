@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Sidebar      from "./components/Sidebar";
 import StatCards    from "./components/StatCards";
 import WardMap      from "./components/WardMap";
@@ -22,15 +22,22 @@ export default function App() {
   
   const theme = isDark ? themes.dark : themes.light;
 
+  // Persist theme preference
+  useEffect(() => {
+    const saved = localStorage.getItem("dva103-dark");
+    if (saved !== null) setIsDark(JSON.parse(saved));
+  }, []);
+  useEffect(() => { localStorage.setItem("dva103-dark", JSON.stringify(isDark)); }, [isDark]);
+
   const filteredStats = useMemo(
     () => getFilteredStats(filters),
-    [filters.violation, filters.timeRange, filters.season, filters.dayOfWeek]
+    [filters]
   );
 
-  const onChange = (key, val) => {
+  const onChange = useCallback((key, val) => {
     setFilters(prev => ({ ...prev, [key]: val }));
     if (key === "ward") setSelected(val);
-  };
+  }, []);
   const onReset  = () => { setFilters(DEFAULT_FILTERS); setSelected(null); setSearchPin(null); setResetKey(k => k + 1); };
 
 
@@ -87,7 +94,7 @@ export default function App() {
               </label>
             </div>
             {bottomTab === "charts" ? (
-              <BottomCharts wards={activeWards} theme={theme} filteredStats={filteredStats} />
+              <BottomCharts wards={activeWards} theme={theme} filteredStats={filteredStats} filters={filters} />
             ) : (
               <EquityPanel wards={activeWards} theme={theme} filteredStats={filteredStats} />
             )}

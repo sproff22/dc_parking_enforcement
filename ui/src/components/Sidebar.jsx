@@ -7,7 +7,7 @@ export default function Sidebar({ filters, onChange, onReset, theme, isDark, onT
   };
   
   return (
-    <aside style={{ width:195, background:theme.sidebarBg, color:theme.text, display:"flex", flexDirection:"column", padding:14, gap:16, borderRight:`1px solid ${theme.border}`, overflowY:"auto", flexShrink:0 }}>
+    <aside style={{ width:220, background:theme.sidebarBg, color:theme.text, display:"flex", flexDirection:"column", padding:14, gap:16, borderRight:`1px solid ${theme.border}`, overflowY:"auto", flexShrink:0 }}>
       <div>
         <div style={{ fontWeight:700, fontSize:14, color:theme.text }}>DC Parking</div>
         <div style={{ fontSize:10, color:theme.textMuted, marginTop:2 }}>Enforcement Explorer  CSE 6242</div>
