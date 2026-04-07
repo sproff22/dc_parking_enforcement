@@ -1,23 +1,36 @@
 import { useState, useEffect, useRef } from "react";
 import DC_WARDS_GEOJSON from "../data/wardBoundaries";
-import { WARD_STATS } from "../data/mockData";
-import { wardColor, riskHex, riskLabel } from "../utils/colors";
+import ZIP_BOUNDARIES from "../data/zipBoundaries.json";
+import { wardColor, riskHex, riskLabel, riskGrade } from "../utils/colors";
 import { fmt, pct, usdK } from "../utils/formatters";
 
-export default function WardMap({ activeWard, onWardClick, colorMode, minRisk, theme }) {
+export default function WardMap({ activeWard, onWardClick, colorMode, minRisk, theme, showZips, filteredStats, searchPin }) {
   const containerRef = useRef(null);
   const mapRef       = useRef(null);
   const layersRef    = useRef({});
   const tileLayerRef = useRef(null);
+  const zipLayerRef  = useRef(null);
+  const pinRef       = useRef(null);
+  const statsRef     = useRef(filteredStats);
+  const colorModeRef = useRef(colorMode);
+  const minRiskRef   = useRef(minRisk);
+  const activeWardRef = useRef(activeWard);
   const [ready, setReady] = useState(false);
+  statsRef.current = filteredStats;
+  colorModeRef.current = colorMode;
+  minRiskRef.current = minRisk;
+  activeWardRef.current = activeWard;
   
   const overlayS = { position:"absolute",inset:0,zIndex:1000,background:theme.overlayBg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8 };
   const spinS    = { width:28,height:28,border:`3px solid ${theme.spinBorder}`,borderTopColor:"#3b82f6",borderRadius:"50%",animation:"spin 0.8s linear infinite" };
 
   function styleFor(wardNum, selected) {
-    const s   = WARD_STATS[wardNum];
-    const dim = s && s.riskScore < minRisk;
-    const col = dim ? theme.wardDim : wardColor(WARD_STATS, wardNum, colorMode);
+    const st  = statsRef.current;
+    const s   = st[wardNum];
+    const mr  = minRiskRef.current;
+    const cm  = colorModeRef.current;
+    const dim = s && s.riskScore < mr;
+    const col = dim ? theme.wardDim : wardColor(st, wardNum, cm);
     return {
       fillColor:   col,
       fillOpacity: dim ? 0.3 : selected === wardNum ? 0.88 : 0.65,
@@ -27,12 +40,12 @@ export default function WardMap({ activeWard, onWardClick, colorMode, minRisk, t
   }
 
   function popupHTML(wn) {
-    const s = WARD_STATS[wn];
+    const s = statsRef.current[wn];
     if (!s) return `<b>Ward ${wn}</b>`;
     return `<div style="font:12px/1.75 system-ui;min-width:155px">
       <b style="font-size:13px">Ward ${wn}</b><br/>
+      Grade: <b style="color:${riskHex(s.riskScore)};font-size:15px">${riskGrade(s.riskScore)}</b> <span style="color:#64748b;font-size:11px">(${(s.riskScore*100).toFixed(0)}%)</span><br/>
       Citations: <b>${fmt(s.citations)}</b><br/>
-      Risk: <b style="color:${riskHex(s.riskScore)}">${(s.riskScore*100).toFixed(0)}% (${riskLabel(s.riskScore)})</b><br/>
       Median income: <b>${usdK(s.medianIncome)}</b><br/>
       Poverty rate: <b>${pct(s.povertyRate)}</b><br/>
       Top violation: <b>${s.topViolation}</b>
@@ -63,12 +76,13 @@ export default function WardMap({ activeWard, onWardClick, colorMode, minRisk, t
           layersRef.current[wn] = { layer, feature: f };
           layer.on("click", () => onWardClick(wn));
           layer.on("mouseover", function(e) {
-            this.setStyle({ weight:3, fillOpacity:0.9 });
+            // Never change fill color on hover — only increase border weight
+            this.setStyle({ weight: 3 });
             L.popup({ closeButton:false, className:"wpop" })
               .setLatLng(e.latlng).setContent(popupHTML(wn)).openOn(map);
           });
           layer.on("mouseout", function() {
-            this.setStyle(styleFor(wn, activeWard));
+            this.setStyle(styleFor(wn, activeWardRef.current));
             map.closePopup();
           });
         },
@@ -85,6 +99,13 @@ export default function WardMap({ activeWard, onWardClick, colorMode, minRisk, t
       s.onload = () => boot(window.L);
       document.head.appendChild(s);
     }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
   }, []);
 
   // Update tile layer when theme changes
@@ -101,7 +122,7 @@ export default function WardMap({ activeWard, onWardClick, colorMode, minRisk, t
     Object.entries(layersRef.current).forEach(([wn, { layer }]) => {
       layer.setStyle(styleFor(parseInt(wn), activeWard));
     });
-  }, [colorMode, activeWard, minRisk, ready]);
+  }, [colorMode, activeWard, minRisk, filteredStats, ready]);
 
   useEffect(() => {
     if (!ready || !mapRef.current) return;
@@ -113,6 +134,54 @@ export default function WardMap({ activeWard, onWardClick, colorMode, minRisk, t
       if (allBounds.isValid()) mapRef.current.fitBounds(allBounds, { padding:[10,10] });
     }
   }, [activeWard, ready]);
+
+  // Show/hide search pin marker
+  useEffect(() => {
+    if (!ready || !mapRef.current) return;
+    const L = window.L;
+    if (pinRef.current) { pinRef.current.remove(); pinRef.current = null; }
+    if (searchPin) {
+      const icon = L.divIcon({
+        className: "",
+        html: '<svg width="24" height="36" viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#ef4444"/><circle cx="12" cy="12" r="5" fill="white"/></svg>',
+        iconSize: [24, 36],
+        iconAnchor: [12, 36],
+      });
+      pinRef.current = L.marker([searchPin.lat, searchPin.lng], { icon })
+        .addTo(mapRef.current);
+      mapRef.current.setView([searchPin.lat, searchPin.lng], 14);
+    }
+  }, [searchPin, ready]);
+
+  // Toggle zip code boundaries
+  useEffect(() => {
+    if (!ready || !mapRef.current) return;
+    const L = window.L;
+    if (zipLayerRef.current) { zipLayerRef.current.remove(); zipLayerRef.current = null; }
+    if (showZips) {
+      zipLayerRef.current = L.geoJSON(ZIP_BOUNDARIES, {
+        style: () => ({
+          fillColor: "transparent",
+          fillOpacity: 0,
+          color: theme.textMuted,
+          weight: 1.5,
+          dashArray: "4 4",
+        }),
+        onEachFeature: (f, layer) => {
+          const zip = f.properties.ZIPCODE || f.properties.ZIP_CODE_TEXT;
+          layer.on("mouseover", function(e) {
+            this.setStyle({ weight: 2.5, color: "#3b82f6" });
+            L.popup({ closeButton:false, className:"wpop" })
+              .setLatLng(e.latlng).setContent(`<b>Zip ${zip}</b>`).openOn(mapRef.current);
+          });
+          layer.on("mouseout", function() {
+            this.setStyle({ weight: 1.5, color: theme.textMuted });
+            mapRef.current.closePopup();
+          });
+        },
+      }).addTo(mapRef.current);
+    }
+  }, [showZips, ready, theme.textMuted]);
 
   return (
     <div style={{ position:"relative", flex:1, minHeight:0, borderRadius:10, overflow:"hidden", border:`1px solid ${theme.mapBorder}` }}>

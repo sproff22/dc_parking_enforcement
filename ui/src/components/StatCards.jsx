@@ -1,9 +1,8 @@
-import { WARD_STATS } from "../data/mockData";
 import { riskHex, riskLabel } from "../utils/colors";
 import { fmt, pct, usdK, usdM } from "../utils/formatters";
 
-export default function StatCards({ wards, theme }) {
-  const stats = wards.map(w => WARD_STATS[w]).filter(Boolean);
+export default function StatCards({ wards, theme, filteredStats }) {
+  const stats = wards.map(w => filteredStats[w]).filter(Boolean);
   const tot  = stats.reduce((s, d) => s + d.citations,   0);
   const rev  = stats.reduce((s, d) => s + d.fineRevenue, 0);
   const risk = stats.length ? stats.reduce((s, d) => s + d.riskScore,    0) / stats.length : 0;
@@ -11,9 +10,9 @@ export default function StatCards({ wards, theme }) {
   const pov  = stats.length ? stats.reduce((s, d) => s + d.povertyRate,  0) / stats.length : 0;
 
   const cards = [
-    { lbl:"Total Citations",   val:fmt(tot),                     sub:"March 2025 (filtered)" },
+    { lbl:"Total Citations",   val:fmt(tot),                     sub:"Jan–Dec 2025 (filtered)" },
     { lbl:"Fine Revenue",      val:usdM(rev),                    sub:"from FINE_AMOUNT field" },
-    { lbl:"Avg Risk Score",    val:`${(risk*100).toFixed(0)}%`,  sub:riskLabel(risk), c:riskHex(risk) },
+    { lbl:"Recurrence Risk", val:`${(risk*100).toFixed(0)}%`,  sub:riskLabel(risk), c:riskHex(risk) },
     { lbl:"Avg Median Income", val:usdK(inc),                    sub:"ACS table B19013" },
     { lbl:"Avg Poverty Rate",  val:pct(pov),                     sub:"ACS table B17001" },
   ];
