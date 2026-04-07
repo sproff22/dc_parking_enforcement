@@ -1,34 +1,37 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { WARD_STATS, HOURLY_CITATIONS } from "../data/mockData";
-import { riskHex, incomeHex } from "../utils/colors";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { getHourlyCitations, getTopViolations } from "../data/mockData";
+import { riskHex } from "../utils/colors";
 import { fmt } from "../utils/formatters";
 
-export default function BottomCharts({ wards, theme }) {
+export default function BottomCharts({ wards, theme, filteredStats }) {
   const ttStyle = { background:theme.cardBg, border:`1px solid ${theme.border}`, fontSize:11, color:theme.text };
+
   const wardBar = wards.map(w => ({
     ward:   `W${w}`,
-    citations: WARD_STATS[w]?.citations ?? 0,
-    income: Math.round((WARD_STATS[w]?.medianIncome ?? 0) / 1000),
-    rFill:  riskHex(WARD_STATS[w]?.riskScore ?? 0),
-    iFill:  incomeHex(WARD_STATS[w]?.medianIncome ?? 0),
+    citations: filteredStats[w]?.citations ?? 0,
+    rFill:  riskHex(filteredStats[w]?.riskScore ?? 0),
   }));
+  const hourlyCitations = getHourlyCitations(wards);
+  const topViolations = getTopViolations(wards, filteredStats);
 
   return (
     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, height:150 }}>
-      <ChartBox title="Citations by Ward (after spatial join -> WARD field)" theme={theme}>
+      <ChartBox title="Citations by Ward" theme={theme}>
         <ResponsiveContainer width="100%" height={108}>
           <BarChart data={wardBar} margin={{ top:0,right:0,left:-22,bottom:0 }}>
             <XAxis dataKey="ward" tick={{ fontSize:10, fill:"#64748b" }} />
             <YAxis tick={{ fontSize:9, fill:"#64748b" }} />
             <Tooltip contentStyle={ttStyle} formatter={v => fmt(v)} />
-            <Bar dataKey="citations" radius={[3,3,0,0]} fill="#3b82f6" />
+            <Bar dataKey="citations" radius={[3,3,0,0]}>
+              {wardBar.map((d, i) => <Cell key={i} fill={d.rFill} />)}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </ChartBox>
 
-      <ChartBox title="Citations by Hour (from ISSUE_TIME field)" theme={theme}>
+      <ChartBox title="Citations by Hour" theme={theme}>
         <ResponsiveContainer width="100%" height={108}>
-          <BarChart data={HOURLY_CITATIONS} margin={{ top:0,right:0,left:-22,bottom:0 }}>
+          <BarChart data={hourlyCitations} margin={{ top:0,right:0,left:-22,bottom:0 }}>
             <XAxis dataKey="hour" tick={{ fontSize:9, fill:"#64748b" }} />
             <YAxis tick={{ fontSize:9, fill:"#64748b" }} />
             <Tooltip contentStyle={ttStyle} />
@@ -37,13 +40,13 @@ export default function BottomCharts({ wards, theme }) {
         </ResponsiveContainer>
       </ChartBox>
 
-      <ChartBox title="Median Income by Ward (ACS B19013 - equity layer)" theme={theme}>
+      <ChartBox title="Top Violation Types" theme={theme}>
         <ResponsiveContainer width="100%" height={108}>
-          <BarChart data={wardBar} margin={{ top:0,right:0,left:-8,bottom:0 }}>
-            <XAxis dataKey="ward" tick={{ fontSize:10, fill:"#64748b" }} />
-            <YAxis tick={{ fontSize:9, fill:"#64748b" }} unit="k" />
-            <Tooltip contentStyle={ttStyle} formatter={v => `$${v}k`} />
-            <Bar dataKey="income" radius={[3,3,0,0]} fill="#a78bfa" />
+          <BarChart data={topViolations} layout="vertical" margin={{ top:0,right:8,left:2,bottom:0 }}>
+            <XAxis type="number" tick={{ fontSize:9, fill:"#64748b" }} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+            <YAxis type="category" dataKey="name" tick={{ fontSize:8, fill:"#64748b" }} width={70} />
+            <Tooltip contentStyle={ttStyle} formatter={v => fmt(v)} />
+            <Bar dataKey="count" radius={[0,3,3,0]} fill="#a78bfa" />
           </BarChart>
         </ResponsiveContainer>
       </ChartBox>

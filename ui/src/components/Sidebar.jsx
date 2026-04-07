@@ -1,6 +1,6 @@
-import { VIOLATION_TYPES, TIME_RANGES } from "../data/mockData";
+import { VIOLATION_TYPES, TIME_RANGES, SEASONS, DAYS_OF_WEEK } from "../data/mockData";
 
-export default function Sidebar({ filters, onChange, onReset, theme, isDark, onToggleTheme }) {
+export default function Sidebar({ filters, onChange, onReset, theme, isDark, onToggleTheme, children }) {
   const selS = {
     width: "100%", background: theme.inputBg, border: `1px solid ${theme.border}`,
     borderRadius: 4, padding: "5px 8px", fontSize: 12, color: theme.text, outline: "none",
@@ -32,6 +32,12 @@ export default function Sidebar({ filters, onChange, onReset, theme, isDark, onT
         </button>
       </div>
 
+      {children && (
+        <FilterSection label="Address Search" theme={theme}>
+          {children}
+        </FilterSection>
+      )}
+
       <FilterSection label="Ward" theme={theme}>
         <select style={selS} value={filters.ward ?? ""} onChange={e => onChange("ward", e.target.value === "" ? null : parseInt(e.target.value))}>
           <option value="">All Wards</option>
@@ -46,13 +52,21 @@ export default function Sidebar({ filters, onChange, onReset, theme, isDark, onT
       </FilterSection>
 
       <FilterSection label="Time of Day" theme={theme}>
-        {TIME_RANGES.map(t => (
-          <label key={t} style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, cursor:"pointer", padding:"1px 0" }}>
-            <input type="radio" name="time" checked={filters.timeRange === t}
-              onChange={() => onChange("timeRange", t)} style={{ accentColor:"#3b82f6" }} />
-            {t}
-          </label>
-        ))}
+        <select style={selS} value={filters.timeRange} onChange={e => onChange("timeRange", e.target.value)}>
+          {TIME_RANGES.map(t => <option key={t}>{t}</option>)}
+        </select>
+      </FilterSection>
+
+      <FilterSection label="Season" theme={theme}>
+        <select style={selS} value={filters.season} onChange={e => onChange("season", e.target.value)}>
+          {SEASONS.map(s => <option key={s}>{s}</option>)}
+        </select>
+      </FilterSection>
+
+      <FilterSection label="Day of Week" theme={theme}>
+        <select style={selS} value={filters.dayOfWeek} onChange={e => onChange("dayOfWeek", e.target.value)}>
+          {DAYS_OF_WEEK.map(d => <option key={d}>{d}</option>)}
+        </select>
       </FilterSection>
 
       <FilterSection label="Map Color Layer" theme={theme}>

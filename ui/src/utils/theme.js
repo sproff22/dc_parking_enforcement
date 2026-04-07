@@ -54,11 +54,15 @@ export const chipColors = {
     blue: ["#dbeafe", "#1e40af"],
     purple: ["#f3e8ff", "#6b21a8"],
     orange: ["#fed7aa", "#9a3412"],
+    green: ["#d1fae5", "#065f46"],
+    teal: ["#ccfbf1", "#115e59"],
   },
   dark: {
     gray: ["#1e293b", "#64748b"],
     blue: ["#172554", "#93c5fd"],
     purple: ["#2e1065", "#d8b4fe"],
     orange: ["#431407", "#fdba74"],
+    green: ["#064e3b", "#6ee7b7"],
+    teal: ["#134e4a", "#5eead4"],
   },
 };
