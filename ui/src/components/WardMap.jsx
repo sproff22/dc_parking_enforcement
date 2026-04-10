@@ -130,7 +130,7 @@ export default function WardMap({ activeWard, onWardClick, colorMode, minRisk, t
       mapRef.current.fitBounds(layersRef.current[activeWard].layer.getBounds(), { padding:[40,40] });
     } else if (!activeWard) {
       const allBounds = Object.values(layersRef.current)
-        .reduce((b, { layer }) => b.extend(layer.getBounds()), window.L.latLngBounds());
+        .reduce((b, { layer }) => b.extend(layer.getBounds()), new window.L.LatLngBounds());
       if (allBounds.isValid()) mapRef.current.fitBounds(allBounds, { padding:[10,10] });
     }
   }, [activeWard, ready]);
