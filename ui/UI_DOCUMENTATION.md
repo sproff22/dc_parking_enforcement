@@ -24,7 +24,7 @@ Arun Polumbaum, Gabriel Castaneda, Katherine Morton, Meghan Peters, Samuel Roffm
    - [AddressSearch.jsx — Address Risk Lookup](#68-addresssearchjsx--address-risk-lookup)
    - [Legend.jsx — Color Legend & Grade Scale](#69-legendjsx--color-legend--grade-scale)
    - [Chip.jsx — Active Filter Chips](#610-chipjsx--active-filter-chips)
-7. [Data Layer (mockData.js)](#7-data-layer-mockdatajs)
+7. [Data Layer (mockdata.js)](#7-data-layer-mockdatajs)
 8. [Utility Modules](#8-utility-modules)
 9. [How to Run](#9-how-to-run)
 10. [File Structure](#10-file-structure)
@@ -94,7 +94,7 @@ The **Equity Analysis** tab (`EquityPanel.jsx`) presents three scatter plots:
 |---|---|---|---|
 | Citations vs. Median Income | ACS B19013 median household income | Total citations (or per 1k residents) | Census + DC Data |
 | Citations vs. Poverty Rate | ACS B17001 poverty rate | Total citations (or per 1k residents) | Census + DC Data |
-| Citations vs. % Black Population | ACS demographic data | Total citations (or per 1k residents) | Census + DC Data |
+| Citations vs. % People of Color | ACS demographic data (1 - white share) | Total citations (or per 1k residents) | Census + DC Data |
 
 Each plot shows:
 - One dot per ward, colored by enforcement risk score
@@ -178,7 +178,7 @@ No backend server is needed. The app is fully static and can be deployed by serv
 ┌─────────────────────────────────────────────────────────────────┐
 │                    React Frontend (Vite)                          │
 │                                                                   │
-│  wardFilterData.json ──► mockData.js ──► getFilteredStats()      │
+│  wardFilterData.json ──► mockdata.js ──► getFilteredStats()      │
 │                                     ──► getHourlyCitations()     │
 │                                     ──► getMonthlyCitations()    │
 │                                     ──► getTopViolations()       │
@@ -221,10 +221,11 @@ The `filteredStats` object is derived via `useMemo` from the `filters` state, re
   povertyRate: 0.12,         // ACS B17001
   vehicleOwnership: 0.65,    // ACS B08201
   population: 85000,         // Approximate ward population
-  blackShare: 0.48,          // % Black/African American
-  whiteShare: 0.38,          // % White
-  hispanicShare: 0.08,       // % Hispanic/Latino
-  asianShare: 0.04,          // % Asian
+  whiteShare: 0.38,          // % White (ACS)
+  blackShare: 0.48,          // % Black/African American (ACS, for reference)
+  hispanicShare: 0.08,       // % Hispanic/Latino (ACS, for reference)
+  asianShare: 0.04,          // % Asian (ACS, for reference)
+  // Note: Equity analysis uses pocShare = 1 - whiteShare
   fineRevenue: 2450000,      // Total fine revenue ($)
   avgFine: 198,              // Average fine per citation
   topViolation: "NO PARKING" // Most common violation type
@@ -276,8 +277,10 @@ The data pipeline (`data/generate_ward_filter_data.py`) transforms raw data into
       "povertyRate": 0.11,
       "vehicleOwnership": 0.62,
       "population": 87000,
-      "blackShare": 0.33,
       "whiteShare": 0.50,
+      "blackShare": 0.33,  // for reference only
+      "hispanicShare": 0.12,  // for reference only
+      "asianShare": 0.03,  // for reference only
       "breakdown": {
         "NO PARKING|8am-10am|Spring|Mon": { "c": 45, "f": 6750, "b": 0.0021 },
         ...
@@ -418,13 +421,18 @@ Four charts in a horizontal grid (switchable with the Equity Analysis tab):
 
 Three scatter plots accessible via the "Equity Analysis" tab:
 
-Each plot shows one dot per ward (sized and colored by risk score) with:
+1. **Citations vs. Median Income** — Examines whether wealthier wards receive more or fewer citations
+2. **Citations vs. Poverty Rate** — Tests for potential targeting of high-poverty areas
+3. **Citations vs. % People of Color** — Examines demographic bias (calculated as 1 - white population share)
+
+Each plot shows one dot per ward (colored by risk score) with:
+- **Fixed X-axis scales** with `type="number"` to prevent auto-scaling distortion — ensures points are positioned by absolute values, not relative scaling
 - **Pearson r** correlation coefficient computed in real-time
 - **Ward count (n)** for transparency
 - **Per-capita toggle** — Checkbox "Per 1k residents" normalizes the Y-axis from raw citation count to citations per 1,000 ward residents, controlling for population differences
-- **Custom tooltips** showing ward name, raw + per-capita citations, income, poverty, and risk
+- **Custom tooltips** showing ward name, raw + per-capita citations, income, poverty, % POC, and risk score
 
-The equity panel includes a disclaimer emphasizing that correlations are descriptive, not causal.
+The equity panel includes a disclaimer emphasizing that correlations are descriptive, not causal: *"Descriptive only — does not control for confounding factors (enforcement density, commercial activity, parking supply)."*
 
 **Pearson r implementation**: The `pearsonR(xs, ys)` function computes the Pearson correlation coefficient directly:
 
@@ -480,9 +488,11 @@ Small colored pills displayed above the stat cards to show which filters are act
 
 ---
 
-## 7. Data Layer (mockData.js)
+## 7. Data Layer (mockdata.js)
 
-The `mockData.js` module imports `wardFilterData.json` and exports the following:
+**Note**: Despite the legacy filename, `mockdata.js` contains production data processing logic and serves real data from `wardFilterData.json` (1M+ parking citations). The module manages data access and filtering for the entire application.
+
+The `mockdata.js` module imports `wardFilterData.json` and exports the following:
 
 | Export | Type | Description |
 |---|---|---|
@@ -604,7 +614,7 @@ ui/
 │   │   ├── StatCards.jsx               # 5 KPI summary cards
 │   │   └── WardMap.jsx                 # Leaflet choropleth map
 │   ├── data/
-│   │   ├── mockData.js                 # Data access layer and filter logic
+│   │   ├── mockdata.js                 # Data access layer and filter logic
 │   │   ├── wardFilterData.json         # Pre-computed ward data (2.8 MB)
 │   │   ├── blockLookup.json            # Block-level risk lookup (2.1 MB, lazy-loaded)
 │   │   ├── wardBoundaries.js           # DC ward GeoJSON (920 KB)
