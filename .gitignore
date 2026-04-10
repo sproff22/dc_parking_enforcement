@@ -2,8 +2,20 @@ node_modules/
 dist/
 .env
 *.log
-/.DS_Store
+.DS_Store
 ui/node_modules/.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Vite cache
+.vite/
+
+# Large model output (not in repo)
+DVA-Data/
 
 # ---- large generated data ----
 data/ticket_zcta_lookup.csv
@@ -27,5 +39,3 @@ eda/location_blocks.csv
 eda/model_data.csv
 visualization/feature_data.csv
 visualization/.ipynb_checkpoints/Visualization & Charts-checkpoint.ipynb
-data/.DS_Store
-data/acs_data/.DS_Store

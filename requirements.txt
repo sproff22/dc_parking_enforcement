@@ -1,0 +1,12 @@
+# Core data processing
+pandas>=2.0
+numpy>=1.24
+geopandas>=0.14
+pyarrow>=14.0
+
+# Data collection (only needed for regenerating raw data)
+python-dotenv>=1.0
+requests>=2.31
+
+# Streamlit alternative UI (optional — see main.py)
+streamlit>=1.30
