@@ -101,7 +101,7 @@ export default function App() {
           </div>
           <DetailPanel
             ward={selected}
-            onClose={() => { setSelected(null); onChange("ward", null); }}
+            onClose={() => { setSelected(null); onChange("ward", null); setSearchPin(null); }}
             theme={theme}
             filteredStats={filteredStats}
           />

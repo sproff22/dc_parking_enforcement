@@ -59,9 +59,27 @@ export default function AddressSearch({ onResult, theme, resetKey }) {
   const [error, setError] = useState("");
   const [blockResult, setBlockResult] = useState(null);
   const blockLookupRef = useRef(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Clear input when resetKey changes (Reset Filters clicked)
-  useEffect(() => { setQuery(""); setError(""); setBlockResult(null); }, [resetKey]);
+  useEffect(() => { setQuery(""); setError(""); setBlockResult(null); setSuggestions([]); setShowDropdown(false); }, [resetKey]);
+
+  // Update suggestions when query changes
+  useEffect(() => {
+    if (query.trim().length === 0) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    loadBlockLookup().then(lookup => {
+      const q = query.toUpperCase();
+      const matches = Object.keys(lookup).filter(address => address.includes(q)).slice(0, 10);
+      setSuggestions(matches);
+      setShowDropdown(matches.length > 0);
+    });
+  }, [query]);
 
   async function loadBlockLookup() {
     if (blockLookupRef.current) return blockLookupRef.current;
@@ -116,23 +134,83 @@ export default function AddressSearch({ onResult, theme, resetKey }) {
 
   function handleKeyDown(e) {
     if (e.key === "Enter") handleSearch();
+    if (e.key === "Escape") {
+      setShowDropdown(false);
+      setSuggestions([]);
+    }
+  }
+
+  async function handleSelectSuggestion(address) {
+    setQuery(address.replace(" BLOCK ", " "));
+    setShowDropdown(false);
+    setSuggestions([]);
+    // Trigger search after selection
+    setTimeout(async () => {
+      const lookup = await loadBlockLookup();
+      const blockInfo = lookup[address];
+      if (blockInfo) {
+        setBlockResult({ block: address, ...blockInfo });
+        const ward = findWard(blockInfo.lat, blockInfo.lng);
+        onResult({ ward, lat: blockInfo.lat, lng: blockInfo.lng, blockInfo });
+        setError("");
+      }
+    }, 0);
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <div style={{ display: "flex", gap: 4 }}>
-        <input
-          type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Search address..."
-          style={{
-            flex: 1, background: theme.inputBg, border: `1px solid ${theme.border}`,
-            borderRadius: 4, padding: "5px 8px", fontSize: 11, color: theme.text,
-            outline: "none",
-          }}
-        />
+      <div style={{ display: "flex", gap: 4, position: "relative" }}>
+        <div style={{ flex: 1, position: "relative" }}>
+          <input
+            type="text"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Search address..."
+            style={{
+              width: "100%", background: theme.inputBg, border: `1px solid ${theme.border}`,
+              borderRadius: suggestions.length > 0 ? "4px 4px 0 0" : 4, padding: "5px 8px", fontSize: 11, color: theme.text,
+              outline: "none", boxSizing: "border-box", transition: "border-radius 0.2s",
+            }}
+          />
+          {suggestions.length > 0 && (
+            <div style={{
+              position: "absolute",
+              top: "calc(100% - 1px)",
+              left: 0,
+              right: 0,
+              minWidth: "300px",
+              background: theme.inputBg,
+              border: `1px solid ${theme.border}`,
+              borderTop: `1px solid ${theme.border}`,
+              borderRadius: "0 0 4px 4px",
+              maxHeight: "300px",
+              overflowY: "auto",
+              zIndex: 1000,
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            }}>
+              {suggestions.map((address, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => handleSelectSuggestion(address)}
+                  style={{
+                    padding: "8px 8px",
+                    fontSize: 10,
+                    color: theme.text,
+                    cursor: "pointer",
+                    borderBottom: idx < suggestions.length - 1 ? `1px solid ${theme.border}` : "none",
+                    backgroundColor: "transparent",
+                    transition: "background-color 0.15s",
+                  }}
+                  onMouseEnter={e => e.target.style.backgroundColor = theme.border}
+                  onMouseLeave={e => e.target.style.backgroundColor = "transparent"}
+                >
+                  {address.replace(" BLOCK ", " ")}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <button
           onClick={handleSearch}
           disabled={loading}
@@ -151,7 +229,7 @@ export default function AddressSearch({ onResult, theme, resetKey }) {
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 22, fontWeight: 800, color: gradeHex(blockResult.g) }}>{blockResult.g}</span>
             <div style={{ fontSize: 10, color: theme.text, lineHeight: 1.3 }}>
-              <div style={{ fontWeight: 600 }}>{blockResult.block}</div>
+              <div style={{ fontWeight: 600 }}>{blockResult.block.replace(" BLOCK ", " ")}</div>
               <div style={{ color: theme.textMuted }}>{blockResult.t} tickets · score {(blockResult.s * 100).toFixed(2)}%</div>
             </div>
           </div>

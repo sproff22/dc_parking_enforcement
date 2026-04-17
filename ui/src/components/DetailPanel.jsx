@@ -76,7 +76,7 @@ export default function DetailPanel({ ward, onClose, theme, filteredStats }) {
                 <div key={i} style={{ display:"flex", alignItems:"center", gap:6, borderBottom:`1px solid ${theme.sectionDivider}`, paddingBottom:3 }}>
                   <span style={{ fontSize:12, fontWeight:700, color:gColor, minWidth:14 }}>{i+1}</span>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:10, color:theme.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{b.block}</div>
+                    <div style={{ fontSize:10, color:theme.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{b.block.replace(" BLOCK ", " ")}</div>
                     <div style={{ fontSize:9, color:theme.textMuted }}>{b.tickets} tickets · {(b.score*100).toFixed(2)}%</div>
                   </div>
                 </div>

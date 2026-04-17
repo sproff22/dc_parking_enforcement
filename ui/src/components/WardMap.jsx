@@ -150,6 +150,11 @@ export default function WardMap({ activeWard, onWardClick, colorMode, minRisk, t
       pinRef.current = L.marker([searchPin.lat, searchPin.lng], { icon })
         .addTo(mapRef.current);
       mapRef.current.setView([searchPin.lat, searchPin.lng], 14);
+    } else {
+      // Reset to all DC wards view when search pin is cleared
+      const allBounds = Object.values(layersRef.current)
+        .reduce((b, { layer }) => b.extend(layer.getBounds()), new L.LatLngBounds());
+      if (allBounds.isValid()) mapRef.current.fitBounds(allBounds, { padding:[10,10] });
     }
   }, [searchPin, ready]);
 
