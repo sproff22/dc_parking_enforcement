@@ -12,7 +12,7 @@ This project provides an interactive web application for exploring parking
 citation risk and enforcement equity across Washington, D.C.'s eight wards.
 
 The tool combines:
-- 1,027,421 parking citations from DC Open Data (January-December 2025)
+- 1,027,421 raw parking citation records from DC Open Data (January–December 2025), of which 994,294 spatially matched citations were used in the     final analysis
 - Bayesian probabilistic risk modeling with beta-binomial empirical Bayes for 
   recurrence scoring across 24,160 blocks and 336 time slots
 - Census demographics (income, poverty, vehicle ownership, race) aggregated 
