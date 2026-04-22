@@ -160,20 +160,6 @@ To run the Streamlit app (if you have DVA-Data):
 2. streamlit run main.py
 
 ================================================================================
-DEMO VIDEO (Optional)
-================================================================================
-
-A demo video showing installation and execution is available at:
-[To be added before final submission if team creates one]
-
-The video demonstrates:
-1. Installing dependencies (npm install)
-2. Starting the development server (npm run dev)
-3. Navigating the interface
-4. Using filters and address search
-5. Viewing equity analysis
-
-================================================================================
 TROUBLESHOOTING
 ================================================================================
 
