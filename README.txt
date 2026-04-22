@@ -12,9 +12,9 @@ This project provides an interactive web application for exploring parking
 citation risk and enforcement equity across Washington, D.C.'s eight wards.
 
 The tool combines:
-- 1,027,421 raw parking citation records from DC Open Data (January–December 2025), of which 994,294 spatially matched citations were used in the  final analysis
-- Bayesian probabilistic risk modeling with beta-binomial empirical Bayes for 
-  recurrence scoring across 24,160 blocks and 336 time slots
+- 1,027,421 raw parking citation records from DC Open Data (January–December 2025), of which 994,294 spatially matched citations were used
+  in the final analysis
+- Empirical Bayes beta-binomial risk modeling for recurrence scoring across 24,160 blocks and 336 time slots
 - Census demographics (income, poverty, vehicle ownership, race) aggregated 
   by ward
 - Interactive spatiotemporal filtering by violation type, time of day, season, 
@@ -53,7 +53,7 @@ client-side with no backend required - all data is pre-computed and bundled as
 static JSON files (wardFilterData.json: 2.8 MB; blockLookup.json: 2.1 MB).
 
 DATA SOURCES:
-- DC Open Data: 1,027,421 parking violations (Jan-Dec 2025)
+- DC Open Data: 1,027,421 raw parking citation records (Jan-Dec 2025) of which 994,294 used in final analysis
 - DVA-Data/feature_data.parquet: Bayesian model output (8,117,760 rows)
 - US Census Bureau: ACS 5-year estimates (demographics) for 8 wards
 - DC Open Data: Ward boundaries (2022 redistricting)
@@ -255,8 +255,8 @@ Based on the equity analysis in the dashboard:
   citations; Ward 6: 187K citations)
 - Weak correlation with poverty - highest citation counts are in moderate-
   poverty wards, not the highest-poverty wards
-- No strong evidence of demographic targeting - enforcement patterns appear 
-  more related to commercial activity and parking supply than to race or income
+- No strong ward-level evidence of demographic targeting in this descriptive analysis;
+  enforcement patterns appear more related to commercial activity and parking supply than to race or income
 - Ward 7-8 paradox: Highest poverty (24-27%) and highest POC populations 
   (97-98%) have among the lowest citation counts (36-39K)
 
