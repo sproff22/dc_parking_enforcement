@@ -186,33 +186,53 @@ For address search issues:
 PROJECT STRUCTURE
 ================================================================================
 
+We recommend running the React UI in the ui/
+directory, which is the primary interface for the project.
+
 CSE6242---DVA-Group-103--main/
-├── README.txt                     # This file
-├── data/                          # Data processing scripts
-│   ├── generate_ward_filter_data.py   # Generates UI data files
-│   ├── compute_ward_acs.py            # Aggregates census data by ward  
+├── README.txt                     # Main project README for submission
+├── README.md                      # Repository README
+├── requirements.txt               # Python dependencies for data scripts / optional Streamlit app
+├── main.py                        # Optional Streamlit alternative (React UI is the primary interface)
+├── report_stats.py                # Helper script for report statistics / summaries
+│
+├── data/                          # Data processing scripts and source data
+│   ├── __init__.py
+│   ├── generate_ward_filter_data.py   # Generates UI-ready data files
+│   ├── compute_ward_acs.py            # Aggregates census data by ward
 │   ├── concat_dc_data.py              # Merges monthly citation files
-│   ├── dc_data/                       # Raw parking violation CSVs (12 months)
-│   └── acs_data/                      # Census demographic data
-├── ui/                            # React web application
-│   ├── src/
-│   │   ├── components/            # React components
-│   │   │   ├── WardMap.jsx        # Interactive map
-│   │   │   ├── AddressSearch.jsx  # Address lookup
-│   │   │   ├── EquityPanel.jsx    # Equity scatter plots
-│   │   │   ├── Sidebar.jsx        # Filter controls
-│   │   │   └── ...               
-│   │   └── data/                  # Pre-computed JSON data files
-│   │       ├── wardFilterData.json    # Ward statistics (2.8 MB)
-│   │       └── blockLookup.json       # Block risk scores (2.1 MB)
-│   ├── package.json               # Dependencies
-│   ├── vite.config.js             # Build configuration
-│   ├── README.md                  # UI-specific README
-│   └── UI_DOCUMENTATION.md        # Detailed component docs (34 pages)
-├── visualization/                 # Geospatial assets
-│   ├── Wards_from_2022.geojson    # DC ward boundaries
-│   └── Zip_Codes.geojson          # ZIP code boundaries
-└── main.py                        # Streamlit alternative (requires DVA-Data)
+│   ├── acs_data/                      # ACS demographic data and helpers
+│   └── dc_data/                       # Raw monthly parking citation CSVs
+│
+├── data_collection/               # Data acquisition / preprocessing helpers
+│   ├── acs_collection.py
+│   └── shapefile.py
+│
+├── eda/                           # Exploratory data analysis notebooks and outputs
+│   ├── dc_parking_enforcement_eda.ipynb
+│   ├── dc_parking_enforcement_eda.html
+│   ├── tickets_by_time_band.gif
+│   └── gif_frames/
+│
+├── ui/                            # Primary React/Vite web application
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── vite.config.js
+│   ├── README.md
+│   ├── UI_DOCUMENTATION.md
+│   └── src/
+│       ├── App.jsx
+│       ├── main.jsx
+│       ├── components/            # React UI components
+│       ├── data/                  # Precomputed JSON data files
+│       └── utils/                 # Utility/helper functions
+│
+├── visualization/                 # Geospatial assets and visualization notebooks
+│   ├── README.md
+│   ├── Visualization & Charts.ipynb
+│   ├── Wards_from_2022.geojson
+│   └── Zip_Codes.geojson
 
 ================================================================================
 DEPENDENCIES
