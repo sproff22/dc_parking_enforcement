@@ -87,7 +87,8 @@ NOTES:
   needed if you want to regenerate the data files from scratch.
 - All required data files (wardFilterData.json, blockLookup.json) are already 
   included in ui/src/data/
-- No backend server, database, or API keys are required
+- The core dashboard runs fully client-side using precomputed local JSON files. No backend server, database, or API keys are required.
+- An internet connection is required only for the address search feature, which uses OpenStreetMap Nominatim for geocoding.
 
 ================================================================================
 EXECUTION  
@@ -223,9 +224,8 @@ UI (React/Vite):
 - Vite 5.4.11
 - @vitejs/plugin-react 4.3.4
 
-The UI runs standalone with pre-computed data. After npm install, no external 
-dependencies or internet connection are required (except for address search 
-geocoding).
+The UI runs standalone with precomputed data after installation. No backend services or external databases are required. 
+An internet connection is only needed for address search geocoding.
 
 Data Processing (only if regenerating data):
 - Python 3.8+
