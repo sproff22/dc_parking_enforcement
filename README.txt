@@ -190,11 +190,11 @@ We recommend running the React UI in the ui/
 directory, which is the primary interface for the project.
 
 CSE6242---DVA-Group-103--main/
-├── README.txt                     # Main project README for submission
-├── README.md                      # Repository README
-├── requirements.txt               # Python dependencies for data scripts / optional Streamlit app
-├── main.py                        # Optional Streamlit alternative (React UI is the primary interface)
-├── report_stats.py                # Helper script for report statistics / summaries
+├── README.txt                     
+├── README.md                      
+├── requirements.txt               
+├── main.py                        
+├── report_stats.py                
 │
 ├── data/                          # Data processing scripts and source data
 │   ├── __init__.py
