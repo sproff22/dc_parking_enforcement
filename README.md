@@ -2,7 +2,7 @@
 
 **Ticket Patterns: Spatiotemporal Modeling and Equity Analysis of Parking Enforcement in Washington, D.C.**
 
-Team #103 | CSE 6242 Data and Visual Analytics  
+Georgia Institute of Technology | CSE 6242 Data and Visual Analytics  
 Arun Polumbaum, Gabriel Castaneda, Katherine Morton, Meghan Peters, Samuel Roffman, Sara Jacob
 
 ---
