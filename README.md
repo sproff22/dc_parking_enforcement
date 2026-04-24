@@ -116,6 +116,63 @@ Required only for:
 
 **Not required** for running the React UI, which uses pre-generated data files.
 
+## Methodology
+
+**Intuition.** Most supervised classification methods require both positive and negative examples to train
+on. The problem with parking enforcement data is that we only observe citation events; we don’t observe
+all the instances where someone parked without getting a ticket. This makes standard approaches like
+logistic regression a poor fit. Instead, we treat enforcement as a sparse stochastic process and estimate
+recurrence rates for each location-condition combination, using empirical Bayes to smooth out extreme
+values and produce risk scores that are stable and interpretable. Our work makes two main contributions:
+on the modeling side, an empirical Bayes beta-binomial grading system designed for sparse, positive-only
+citation data at the block-condition level, and on the visualization side, a fully client-side interactive
+dashboard that combines personalized risk lookup with ward-level equity exploration in a single interface
+with no backend server required.
+
+**Data Collection and Processing.** We aggregated 12 months of parking citation records (January
+through December 2025) from DC Open Data, which gave us 994,294 geocoded citations totaling $60.7M
+in fines across 21 violation types. Each record includes the violation description, issue time, issue date,
+fine amount, and GPS coordinates. We supplemented this with American Community Survey (ACS)
+5-year estimates to obtain ward-level demographic data including median household income (ranging
+from $63K to $159K), poverty rate (7.8% to 27.4%), vehicle ownership, and racial composition. Ward
+boundaries were taken from the 2022 redistricting GeoJSON covering all 8 wards. Citations were then
+spatially joined to wards using GeoPandas point-in-polygon operations and grouped into 12 two-hour
+time bands, 4 seasons, and 7 days of the week.
+
+**Empirical Bayes Model.** Each observation unit is defined as a unique combination of street block,
+day of week, two-hour time band, and season. For each unit, we calculate a raw recurrence rate
+representing how often at least one citation occurred during a given time interval. Because many
+block-condition combinations have very few observations, sparsity is a real challenge, and we address it
+using a beta-binomial empirical Bayes approach. The global distribution of raw rates serves as the prior,
+and each block-condition's observed rate is pulled toward that global baseline. Blocks with less data get
+pulled more strongly, which prevents sparse combinations from producing extreme and unreliable scores,
+while blocks with a lot of data retain their signal. We also scale scores by the overall enforcement
+intensity at each block so that high-volume locations are meaningfully distinguished from quieter ones.
+The final posterior scores are mapped to a letter grade system: A for less than 0.2% recurrence, B for 0.2
+to 0.5%, C for 0.5 to 1%, D for 1 to 2%, and F for anything above 2%. The full model output is a Parquet
+file with 8,117,760 rows spanning 24,160 unique blocks and 336 condition combinations (12 time bands
+× 4 seasons × 7 days).
+
+**Data Pipeline.** The pipeline converts raw citation and demographic data into the static files used by
+the interface. First, `concat_dc_data.py` merges the 12 monthly CSVs into one dataset. Next,
+`compute_ward_acs.py` aggregates ZIP-level ACS data to the ward level using area-weighted spatial
+overlap. The main processing script, `generate_ward_filter_data.py`, performs spatial joins, loads the
+Bayesian model output, and builds a breakdown by violation, time band, season, and day of week for each
+ward. The final outputs are `wardFilterData.json`, which contains ward-level breakdowns, distributions,
+top blocks, and ACS demographics, and `blockLookup.json`, which stores coordinates, mean grade, score,
+and total tickets for 24,094 blocks.
+
+**Interactive Visualization.** The UI is a single-page React 18 application built with Vite 5 that runs
+entirely in the browser using precomputed static JSON. A Leaflet choropleth map displays DC’s 8 wards
+by risk score, median income, or poverty rate, with hover popups and click-to-zoom interaction. A sidebar
+allows filtering by ward, violation type, time of day, season, day of week, and minimum risk threshold.
+Users can also search by address using OpenStreetMap’s Nominatim API, which assigns the result to a
+ward and returns the nearest block’s A to F risk grade. Additional charts show citations by ward, hourly
+distribution, monthly trends, and top violation types, while a detailed panel displays ward-level
+enforcement statistics and top-risk blocks. The interface also includes an equity panel with ward-level
+scatter plots and a raw/per-capita toggle, along with a dark/light theme option stored in localStorage.
+
+
 ## Key Findings
 
 Based on the equity analysis in the dashboard:
